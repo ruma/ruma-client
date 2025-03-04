@@ -33,6 +33,11 @@ jobs:
         uses: taiki-e/cache-cargo-install-action@v2
         with:
           tool: cargo-sort
+      
+      - name: Run cargo-sort
+        run: |
+          cargo sort --workspace --grouped --check \
+                     --order package,lib,features,dependencies,target,dev-dependencies,build-dependencies
 
   msrv:
     name: Minimum Supported Rust Version / Check All Features
