@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use ruma_client_api::discovery::get_supported_versions;
-use ruma_common::api::{MatrixVersion, SendAccessToken};
+use ruma::api::{client::discovery::get_supported_versions, MatrixVersion, SendAccessToken};
 
 use super::{Client, ClientData};
 use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};
@@ -48,7 +47,7 @@ impl ClientBuilder {
     /// Unless the supported Matrix versions were manually set via
     /// [`supported_matrix_versions`][Self::supported_matrix_versions], this will do a
     /// [`get_supported_versions`] request to find out about the supported versions.
-    pub async fn build<C>(self) -> Result<Client<C>, Error<C::Error, ruma_client_api::Error>>
+    pub async fn build<C>(self) -> Result<Client<C>, Error<C::Error, ruma::api::client::Error>>
     where
         C: DefaultConstructibleHttpClient,
     {
@@ -63,7 +62,7 @@ impl ClientBuilder {
     pub async fn http_client<C>(
         self,
         http_client: C,
-    ) -> Result<Client<C>, Error<C::Error, ruma_client_api::Error>>
+    ) -> Result<Client<C>, Error<C::Error, ruma::api::client::Error>>
     where
         C: HttpClient,
     {
