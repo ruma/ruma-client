@@ -8,15 +8,14 @@
 //! for the generic parameter. For the client API, there are login and registration methods
 //! provided for the client (feature `client-api`):
 //!
-//! ```ignore
-//! # // HACK: "ignore" the doctest here because client.log_in needs client-api feature.
-//! // type HttpClient = ruma_client::http_client::_;
+//! ```no_run
+//! # #[cfg(feature = "client-api")]
+//! # async {
 //! # type HttpClient = ruma_client::http_client::Dummy;
-//! # let work = async {
 //! let homeserver_url = "https://example.com".to_owned();
-//! let client = ruma::Client::builder()
+//! let client = ruma_client::Client::builder()
 //!     .homeserver_url(homeserver_url)
-//!     .build::<ruma_client::http_client::Dummy>()
+//!     .build::<HttpClient>()
 //!     .await?;
 //!
 //! let session = client
@@ -61,10 +60,11 @@
 //! ```no_run
 //! # #[cfg(feature = "client-api")]
 //! # async {
+//! # type HttpClient = ruma_client::http_client::Dummy;
 //! # let homeserver_url = "https://example.com".to_owned();
 //! # let client = ruma_client::Client::builder()
 //! #     .homeserver_url(homeserver_url)
-//! #     .build::<ruma_client::http_client::Dummy>()
+//! #     .build::<HttpClient>()
 //! #     .await?;
 //!
 //! use ruma::{
