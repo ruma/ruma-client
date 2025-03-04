@@ -17,3 +17,8 @@ build a client application or a bot, you are likely going to have a better time 
 Rust SDK], which also builds on the other Ruma crates but provides a higher-level API.
 
 [Matrix Rust SDK]: https://github.com/matrix-org/matrix-rust-sdk
+
+## Examples
+
+You can find a small number of examples in our dedicated
+[examples repository](https://github.com/ruma/examples).
