@@ -6,14 +6,16 @@ use std::{
 use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
-use ruma_client_api::{
-    account::register::{self, RegistrationKind},
-    session::login::{self, v3::LoginInfo},
-    sync::sync_events,
-    uiaa::UserIdentifier,
-};
-use ruma_common::{
-    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+use ruma::{
+    api::{
+        client::{
+            account::register::{self, RegistrationKind},
+            session::login::{self, v3::LoginInfo},
+            sync::sync_events,
+            uiaa::UserIdentifier,
+        },
+        MatrixVersion, OutgoingRequest, SendAccessToken,
+    },
     presence::PresenceState,
     DeviceId, UserId,
 };
@@ -117,7 +119,7 @@ impl<C: HttpClient> Client<C> {
         password: &str,
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
-    ) -> Result<login::v3::Response, Error<C::Error, ruma_client_api::Error>> {
+    ) -> Result<login::v3::Response, Error<C::Error, ruma::api::client::Error>> {
         let login_info = LoginInfo::Password(login::v3::Password::new(
             UserIdentifier::UserIdOrLocalpart(user.to_owned()),
             password.to_owned(),
@@ -140,7 +142,8 @@ impl<C: HttpClient> Client<C> {
     /// returned by the endpoint in this client, in addition to returning it.
     pub async fn register_guest(
         &self,
-    ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
+    ) -> Result<register::v3::Response, Error<C::Error, ruma::api::client::uiaa::UiaaResponse>>
+    {
         let response = self
             .send_request(assign!(register::v3::Request::new(), { kind: RegistrationKind::Guest }))
             .await?;
@@ -161,7 +164,8 @@ impl<C: HttpClient> Client<C> {
         &self,
         username: Option<&str>,
         password: &str,
-    ) -> Result<register::v3::Response, Error<C::Error, ruma_client_api::uiaa::UiaaResponse>> {
+    ) -> Result<register::v3::Response, Error<C::Error, ruma::api::client::uiaa::UiaaResponse>>
+    {
         let response = self
             .send_request(assign!(register::v3::Request::new(), {
                 username: username.map(ToOwned::to_owned),
@@ -181,7 +185,7 @@ impl<C: HttpClient> Client<C> {
     /// ```no_run
     /// use std::time::Duration;
     ///
-    /// # use ruma_common::presence::PresenceState;
+    /// # use ruma::presence::PresenceState;
     /// # use tokio_stream::{StreamExt as _};
     /// # let homeserver_url = "https://example.com".to_owned();
     /// # async {
@@ -208,8 +212,9 @@ impl<C: HttpClient> Client<C> {
         mut since: String,
         set_presence: PresenceState,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<sync_events::v3::Response, Error<C::Error, ruma_client_api::Error>>>
-           + '_ {
+    ) -> impl Stream<
+        Item = Result<sync_events::v3::Response, Error<C::Error, ruma::api::client::Error>>,
+    > + '_ {
         try_stream! {
             loop {
                 let response = self

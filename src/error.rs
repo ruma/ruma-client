@@ -2,7 +2,7 @@
 
 use std::fmt::{self, Debug, Display, Formatter};
 
-use ruma_common::api::error::{FromHttpResponseError, IntoHttpError};
+use ruma::api::error::{FromHttpResponseError, IntoHttpError};
 
 /// An error that can occur during client operations.
 #[derive(Debug)]
@@ -25,12 +25,12 @@ pub enum Error<E, F> {
 }
 
 #[cfg(feature = "client-api")]
-impl<E> Error<E, ruma_client_api::Error> {
+impl<E> Error<E, ruma::api::client::Error> {
     /// If `self` is a server error in the `errcode` + `error` format expected
     /// for client-server API endpoints, returns the error kind (`errcode`).
-    pub fn error_kind(&self) -> Option<&ruma_client_api::error::ErrorKind> {
+    pub fn error_kind(&self) -> Option<&ruma::api::client::error::ErrorKind> {
         use as_variant::as_variant;
-        use ruma_client_api::error::FromHttpResponseErrorExt as _;
+        use ruma::api::client::error::FromHttpResponseErrorExt as _;
 
         as_variant!(self, Self::FromHttpResponse)?.error_kind()
     }

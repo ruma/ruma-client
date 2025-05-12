@@ -8,15 +8,14 @@
 //! for the generic parameter. For the client API, there are login and registration methods
 //! provided for the client (feature `client-api`):
 //!
-//! ```ignore
-//! # // HACK: "ignore" the doctest here because client.log_in needs client-api feature.
-//! // type HttpClient = ruma_client::http_client::_;
+//! ```no_run
+//! # #[cfg(feature = "client-api")]
+//! # async {
 //! # type HttpClient = ruma_client::http_client::Dummy;
-//! # let work = async {
 //! let homeserver_url = "https://example.com".to_owned();
-//! let client = ruma::Client::builder()
+//! let client = ruma_client::Client::builder()
 //!     .homeserver_url(homeserver_url)
-//!     .build::<ruma_client::http_client::Dummy>()
+//!     .build::<HttpClient>()
 //!     .await?;
 //!
 //! let session = client
@@ -61,14 +60,17 @@
 //! ```no_run
 //! # #[cfg(feature = "client-api")]
 //! # async {
+//! # type HttpClient = ruma_client::http_client::Dummy;
 //! # let homeserver_url = "https://example.com".to_owned();
 //! # let client = ruma_client::Client::builder()
 //! #     .homeserver_url(homeserver_url)
-//! #     .build::<ruma_client::http_client::Dummy>()
+//! #     .build::<HttpClient>()
 //! #     .await?;
 //!
-//! use ruma_client_api::alias::get_alias;
-//! use ruma_common::{api::MatrixVersion, owned_room_alias_id, room_id};
+//! use ruma::{
+//!     api::{client::alias::get_alias, MatrixVersion},
+//!     owned_room_alias_id, room_id,
+//! };
 //!
 //! let alias = owned_room_alias_id!("#example_room:example.com");
 //! let response = client.send_request(get_alias::v3::Request::new(alias)).await?;
@@ -101,7 +103,9 @@
 
 use std::{any::type_name, future::Future};
 
-use ruma_common::{
+#[doc(no_inline)]
+pub use ruma;
+use ruma::{
     api::{MatrixVersion, OutgoingRequest, SendAccessToken},
     UserId,
 };
@@ -167,9 +171,7 @@ where
 
         let res =
             info_span!("deserialize_response", response_type = type_name::<R::IncomingResponse>())
-                .in_scope(move || {
-                    ruma_common::api::IncomingResponse::try_from_http_response(http_res)
-                })?;
+                .in_scope(move || ruma::api::IncomingResponse::try_from_http_response(http_res))?;
 
         Ok(res)
     }

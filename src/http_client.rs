@@ -4,7 +4,7 @@
 use std::{future::Future, pin::Pin};
 
 use bytes::BufMut;
-use ruma_common::{
+use ruma::{
     api::{MatrixVersion, OutgoingRequest, SendAccessToken},
     UserId,
 };
