@@ -14,7 +14,7 @@ use ruma::{
             sync::sync_events,
             uiaa::UserIdentifier,
         },
-        MatrixVersion, OutgoingRequest, SendAccessToken,
+        OutgoingRequest, SendAccessToken, SupportedVersions,
     },
     presence::PresenceState,
     DeviceId, UserId,
@@ -45,7 +45,7 @@ struct ClientData<C> {
     access_token: Mutex<Option<String>>,
 
     /// The (known) Matrix versions the homeserver supports.
-    supported_matrix_versions: Vec<MatrixVersion>,
+    supported_matrix_versions: SupportedVersions,
 }
 
 impl Client<()> {

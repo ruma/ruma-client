@@ -5,7 +5,7 @@ use std::{future::Future, pin::Pin};
 
 use bytes::BufMut;
 use ruma::{
-    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    api::{OutgoingRequest, SendAccessToken, SupportedVersions},
     UserId,
 };
 
@@ -60,7 +60,7 @@ pub trait HttpClientExt: HttpClient {
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
-        for_versions: &[MatrixVersion],
+        for_versions: &SupportedVersions,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>> {
         self.send_customized_matrix_request(
@@ -79,7 +79,7 @@ pub trait HttpClientExt: HttpClient {
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
-        for_versions: &[MatrixVersion],
+        for_versions: &SupportedVersions,
         request: R,
         customize: F,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>>
@@ -106,7 +106,7 @@ pub trait HttpClientExt: HttpClient {
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
-        for_versions: &[MatrixVersion],
+        for_versions: &SupportedVersions,
         user_id: &'a UserId,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {

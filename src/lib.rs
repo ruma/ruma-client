@@ -13,14 +13,10 @@
 //! # async {
 //! # type HttpClient = ruma_client::http_client::Dummy;
 //! let homeserver_url = "https://example.com".to_owned();
-//! let client = ruma_client::Client::builder()
-//!     .homeserver_url(homeserver_url)
-//!     .build::<HttpClient>()
-//!     .await?;
+//! let client =
+//!     ruma_client::Client::builder().homeserver_url(homeserver_url).build::<HttpClient>().await?;
 //!
-//! let session = client
-//!     .log_in("@alice:example.com", "secret", None, None)
-//!     .await?;
+//! let session = client.log_in("@alice:example.com", "secret", None, None).await?;
 //!
 //! // You're now logged in! Write the session to a file if you want to restore it later.
 //! // Then start using the API!
@@ -106,7 +102,7 @@ use std::{any::type_name, future::Future};
 #[doc(no_inline)]
 pub use ruma;
 use ruma::{
-    api::{MatrixVersion, OutgoingRequest, SendAccessToken},
+    api::{OutgoingRequest, SendAccessToken, SupportedVersions},
     UserId,
 };
 use tracing::{info_span, Instrument};
@@ -135,7 +131,7 @@ fn send_customized_request<'a, C, R, F>(
     http_client: &'a C,
     homeserver_url: &str,
     send_access_token: SendAccessToken<'_>,
-    for_versions: &[MatrixVersion],
+    for_versions: &SupportedVersions,
     request: R,
     customize: F,
 ) -> impl Future<Output = ResponseResult<C, R>> + Send + 'a
