@@ -1,6 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use ruma::api::{client::discovery::get_supported_versions, MatrixVersion, SendAccessToken};
+use ruma::api::{
+    client::discovery::get_supported_versions, MatrixVersion, SendAccessToken, SupportedVersions,
+};
 
 use super::{Client, ClientData};
 use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};
@@ -11,7 +13,7 @@ use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};
 pub struct ClientBuilder {
     homeserver_url: Option<String>,
     access_token: Option<String>,
-    supported_matrix_versions: Option<Vec<MatrixVersion>>,
+    supported_matrix_versions: Option<SupportedVersions>,
 }
 
 impl ClientBuilder {
@@ -37,7 +39,7 @@ impl ClientBuilder {
     /// This method generally *shouldn't* be called. The [`build()`][Self::build] or
     /// [`http_client()`][Self::http_client] method will take care of doing a
     /// [`get_supported_versions`] request to find out about the supported versions.
-    pub fn supported_matrix_versions(self, versions: Vec<MatrixVersion>) -> Self {
+    pub fn supported_matrix_versions(self, versions: SupportedVersions) -> Self {
         Self { supported_matrix_versions: Some(versions), ..self }
     }
 
@@ -76,12 +78,14 @@ impl ClientBuilder {
                 .send_matrix_request(
                     &homeserver_url,
                     SendAccessToken::None,
-                    &[MatrixVersion::V1_0],
+                    &SupportedVersions {
+                        versions: [MatrixVersion::V1_0].into(),
+                        features: Default::default(),
+                    },
                     get_supported_versions::Request::new(),
                 )
                 .await?
-                .known_versions()
-                .collect(),
+                .as_supported_versions(),
         };
 
         Ok(Client(Arc::new(ClientData {

@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Upgrade ruma to 0.13.0.
+  - `ClientBuilder::supported_matrix_versions()` now takes a `SupportedVersions`.
+
 # 0.15.0
 
 Upgrade `ruma-client-api` to 0.20.0.
