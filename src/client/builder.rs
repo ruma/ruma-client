@@ -12,13 +12,21 @@ use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};
 /// This type can be used to construct a `Client` through a few method calls.
 pub struct ClientBuilder {
     homeserver_url: Option<String>,
+    is_appservice: Option<bool>,
     access_token: Option<String>,
+    always_send_token: Option<bool>,
     supported_matrix_versions: Option<SupportedVersions>,
 }
 
 impl ClientBuilder {
     pub(super) fn new() -> Self {
-        Self { homeserver_url: None, access_token: None, supported_matrix_versions: None }
+        Self {
+            homeserver_url: None,
+            is_appservice: None,
+            access_token: None,
+            always_send_token: None,
+            supported_matrix_versions: None,
+        }
     }
 
     /// Set the homeserver URL.
@@ -29,9 +37,19 @@ impl ClientBuilder {
         Self { homeserver_url: Some(url), ..self }
     }
 
+    /// Set whether the client is for an application service.
+    pub fn is_appservice(self, is_appservice: bool) -> Self {
+        Self { is_appservice: Some(is_appservice), ..self }
+    }
+
     /// Set the access token.
     pub fn access_token(self, access_token: Option<String>) -> Self {
         Self { access_token, ..self }
+    }
+
+    /// Set whether the client should always send the access token (N/A for appservice).
+    pub fn always_send_token(self, always_send_token: bool) -> Self {
+        Self { always_send_token: Some(always_send_token), ..self }
     }
 
     /// Set the supported Matrix versions.
@@ -91,7 +109,9 @@ impl ClientBuilder {
         Ok(Client(Arc::new(ClientData {
             homeserver_url,
             http_client,
+            is_appservice: self.is_appservice.unwrap_or(false),
             access_token: Mutex::new(self.access_token),
+            always_send_token: self.always_send_token.unwrap_or(false),
             supported_matrix_versions,
         })))
     }

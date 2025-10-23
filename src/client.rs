@@ -41,8 +41,14 @@ struct ClientData<C> {
     /// The underlying HTTP client.
     http_client: C,
 
+    /// Whether the client is for an application service.
+    is_appservice: bool,
+
     /// The access token, if logged in.
     access_token: Mutex<Option<String>>,
+
+    /// Whether the client should always send the access token (N/A for appservice).
+    always_send_token: bool,
 
     /// The (known) Matrix versions the homeserver supports.
     supported_matrix_versions: SupportedVersions,
@@ -80,10 +86,15 @@ impl<C: HttpClient> Client<C> {
         R: OutgoingRequest,
         F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
     {
+        let is_appservice = self.0.is_appservice;
         let access_token = self.access_token();
-        let send_access_token = match access_token.as_deref() {
-            Some(at) => SendAccessToken::IfRequired(at),
-            None => SendAccessToken::None,
+        let always_send_token = self.0.always_send_token;
+
+        let send_access_token = match (is_appservice, always_send_token, access_token.as_deref()) {
+            (true, _, Some(at)) => SendAccessToken::Appservice(at),
+            (false, false, Some(at)) => SendAccessToken::IfRequired(at),
+            (false, true, Some(at)) => SendAccessToken::Always(at),
+            (_, _, None) => SendAccessToken::None,
         };
 
         send_customized_request(
