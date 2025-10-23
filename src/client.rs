@@ -47,7 +47,7 @@ struct ClientData<C> {
     /// The access token, if logged in.
     access_token: Mutex<Option<String>>,
 
-    /// Whether the client should always send the access token (N/A for appservice).
+    /// Whether the client should always send the access token. Ignored when `is_appservice` is true.
     always_send_token: bool,
 
     /// The (known) Matrix versions the homeserver supports.
