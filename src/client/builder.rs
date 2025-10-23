@@ -47,7 +47,8 @@ impl ClientBuilder {
         Self { access_token, ..self }
     }
 
-    /// Set whether the client should always send the access token (N/A for appservice).
+    /// Set whether the client should always send the access token.
+    /// This setting is ignored if the client is for an application service.
     pub fn always_send_token(self, always_send_token: bool) -> Self {
         Self { always_send_token: Some(always_send_token), ..self }
     }
