@@ -28,6 +28,24 @@ mod builder;
 
 pub use self::builder::ClientBuilder;
 
+/// How the client should handle access tokens when making requests.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum TokenMode {
+    /// Send access token only when the endpoint requires it.
+    SendIfRequired,
+    /// Always send access token to all endpoints.
+    SendAlways,
+    /// Use application service token handling.
+    AppService,
+}
+
+impl Default for TokenMode {
+    fn default() -> Self {
+        Self::SendIfRequired
+    }
+}
+
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
 pub struct Client<C>(Arc<ClientData<C>>);
@@ -41,14 +59,11 @@ struct ClientData<C> {
     /// The underlying HTTP client.
     http_client: C,
 
-    /// Whether the client is for an application service.
-    is_appservice: bool,
-
     /// The access token, if logged in.
     access_token: Mutex<Option<String>>,
 
-    /// Whether the client should always send the access token. Ignored when `is_appservice` is true.
-    always_send_token: bool,
+    /// Mode for handling tokens when making requests.
+    token_mode: TokenMode,
 
     /// The (known) Matrix versions the homeserver supports.
     supported_matrix_versions: SupportedVersions,
@@ -86,15 +101,14 @@ impl<C: HttpClient> Client<C> {
         R: OutgoingRequest,
         F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
     {
-        let is_appservice = self.0.is_appservice;
+        let token_mode = self.0.token_mode;
         let access_token = self.access_token();
-        let always_send_token = self.0.always_send_token;
 
-        let send_access_token = match (is_appservice, always_send_token, access_token.as_deref()) {
-            (true, _, Some(at)) => SendAccessToken::Appservice(at),
-            (false, false, Some(at)) => SendAccessToken::IfRequired(at),
-            (false, true, Some(at)) => SendAccessToken::Always(at),
-            (_, _, None) => SendAccessToken::None,
+        let send_access_token = match (token_mode, access_token.as_deref()) {
+            (TokenMode::AppService, Some(at)) => SendAccessToken::Appservice(at),
+            (TokenMode::SendIfRequired, Some(at)) => SendAccessToken::IfRequired(at),
+            (TokenMode::SendAlways, Some(at)) => SendAccessToken::Always(at),
+            (_, None) => SendAccessToken::None,
         };
 
         send_customized_request(

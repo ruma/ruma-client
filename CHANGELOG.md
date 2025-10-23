@@ -1,14 +1,15 @@
 # [unreleased]
 
--   Added application service support to `Client` and `ClientBuilder`
--   `ClientBuilder` now has `is_appservice()` and `always_send_token()` methods to handle all `SendAccessToken` variants
+Improvements:
+
+-   `ClientBuilder` now has `token_mode()` which takes a `TokenMode` for correlation to `SendAccessToken` behavior.
 
 # 0.16.0
 
 Breaking changes:
 
 -   Upgrade ruma to 0.13.0.
--   `ClientBuilder::supported_matrix_versions()` now takes a `SupportedVersions`.
+    -   `ClientBuilder::supported_matrix_versions()` now takes a `SupportedVersions`.
 
 # 0.15.0
 
