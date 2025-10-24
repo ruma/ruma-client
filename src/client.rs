@@ -29,21 +29,18 @@ mod builder;
 pub use self::builder::ClientBuilder;
 
 /// How the client should handle access tokens when making requests.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[non_exhaustive]
 pub enum TokenMode {
+    #[default]
     /// Send access token only when the endpoint requires it.
     SendIfRequired,
+
     /// Always send access token to all endpoints.
     SendAlways,
+
     /// Use application service token handling.
     AppService,
-}
-
-impl Default for TokenMode {
-    fn default() -> Self {
-        Self::SendIfRequired
-    }
 }
 
 /// A client for the Matrix client-server API.
