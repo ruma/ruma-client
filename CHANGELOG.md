@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+-   `ClientBuilder` now has `token_mode()` which takes a `TokenMode` for correlation to `SendAccessToken` behavior.
+
 # 0.16.0
 
 Breaking changes:

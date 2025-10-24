@@ -4,7 +4,7 @@ use ruma::api::{
     client::discovery::get_supported_versions, MatrixVersion, SendAccessToken, SupportedVersions,
 };
 
-use super::{Client, ClientData};
+use super::{Client, ClientData, TokenMode};
 use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};
 
 /// A [`Client`] builder.
@@ -13,12 +13,18 @@ use crate::{DefaultConstructibleHttpClient, Error, HttpClient, HttpClientExt};
 pub struct ClientBuilder {
     homeserver_url: Option<String>,
     access_token: Option<String>,
+    token_mode: TokenMode,
     supported_matrix_versions: Option<SupportedVersions>,
 }
 
 impl ClientBuilder {
     pub(super) fn new() -> Self {
-        Self { homeserver_url: None, access_token: None, supported_matrix_versions: None }
+        Self {
+            homeserver_url: None,
+            access_token: None,
+            token_mode: TokenMode::default(),
+            supported_matrix_versions: None,
+        }
     }
 
     /// Set the homeserver URL.
@@ -32,6 +38,11 @@ impl ClientBuilder {
     /// Set the access token.
     pub fn access_token(self, access_token: Option<String>) -> Self {
         Self { access_token, ..self }
+    }
+
+    /// Set how access tokens should be handled when making requests.
+    pub fn token_mode(self, token_mode: TokenMode) -> Self {
+        Self { token_mode, ..self }
     }
 
     /// Set the supported Matrix versions.
@@ -92,6 +103,7 @@ impl ClientBuilder {
             homeserver_url,
             http_client,
             access_token: Mutex::new(self.access_token),
+            token_mode: self.token_mode,
             supported_matrix_versions,
         })))
     }

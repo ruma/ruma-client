@@ -28,6 +28,21 @@ mod builder;
 
 pub use self::builder::ClientBuilder;
 
+/// How the client should handle access tokens when making requests.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub enum TokenMode {
+    #[default]
+    /// Send access token only when the endpoint requires it.
+    SendIfRequired,
+
+    /// Always send access token to all endpoints.
+    SendAlways,
+
+    /// Use application service token handling.
+    AppService,
+}
+
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
 pub struct Client<C>(Arc<ClientData<C>>);
@@ -43,6 +58,9 @@ struct ClientData<C> {
 
     /// The access token, if logged in.
     access_token: Mutex<Option<String>>,
+
+    /// Mode for handling tokens when making requests.
+    token_mode: TokenMode,
 
     /// The (known) Matrix versions the homeserver supports.
     supported_matrix_versions: SupportedVersions,
@@ -80,10 +98,14 @@ impl<C: HttpClient> Client<C> {
         R: OutgoingRequest,
         F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
     {
+        let token_mode = self.0.token_mode;
         let access_token = self.access_token();
-        let send_access_token = match access_token.as_deref() {
-            Some(at) => SendAccessToken::IfRequired(at),
-            None => SendAccessToken::None,
+
+        let send_access_token = match (token_mode, access_token.as_deref()) {
+            (TokenMode::AppService, Some(at)) => SendAccessToken::Appservice(at),
+            (TokenMode::SendIfRequired, Some(at)) => SendAccessToken::IfRequired(at),
+            (TokenMode::SendAlways, Some(at)) => SendAccessToken::Always(at),
+            (_, None) => SendAccessToken::None,
         };
 
         send_customized_request(

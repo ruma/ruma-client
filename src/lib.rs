@@ -113,7 +113,7 @@ mod error;
 pub mod http_client;
 
 #[cfg(feature = "client-api")]
-pub use self::client::{Client, ClientBuilder};
+pub use self::client::{Client, ClientBuilder, TokenMode};
 pub use self::{
     error::Error,
     http_client::{DefaultConstructibleHttpClient, HttpClient, HttpClientExt},
