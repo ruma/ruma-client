@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use ruma::api::{
-    client::discovery::get_supported_versions, MatrixVersion, SendAccessToken, SupportedVersions,
+    auth_scheme::SendAccessToken, client::discovery::get_supported_versions, SupportedVersions,
 };
 
 use super::{Client, ClientData, TokenMode};
@@ -89,10 +89,7 @@ impl ClientBuilder {
                 .send_matrix_request(
                     &homeserver_url,
                     SendAccessToken::None,
-                    &SupportedVersions {
-                        versions: [MatrixVersion::V1_0].into(),
-                        features: Default::default(),
-                    },
+                    (),
                     get_supported_versions::Request::new(),
                 )
                 .await?

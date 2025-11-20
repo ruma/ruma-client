@@ -102,7 +102,11 @@ use std::{any::type_name, future::Future};
 #[doc(no_inline)]
 pub use ruma;
 use ruma::{
-    api::{OutgoingRequest, SendAccessToken, SupportedVersions},
+    api::{
+        auth_scheme::{AuthScheme, SendAccessToken},
+        path_builder::PathBuilder,
+        OutgoingRequest,
+    },
     UserId,
 };
 use tracing::{info_span, Instrument};
@@ -113,7 +117,7 @@ mod error;
 pub mod http_client;
 
 #[cfg(feature = "client-api")]
-pub use self::client::{Client, ClientBuilder, TokenMode};
+pub use self::client::{Client, ClientBuilder, SupportedPathBuilder, TokenMode};
 pub use self::{
     error::Error,
     http_client::{DefaultConstructibleHttpClient, HttpClient, HttpClientExt},
@@ -130,20 +134,21 @@ pub type ResponseResult<C, R> =
 fn send_customized_request<'a, C, R, F>(
     http_client: &'a C,
     homeserver_url: &str,
-    send_access_token: SendAccessToken<'_>,
-    for_versions: &SupportedVersions,
+    send_access_token: SendAccessToken<'a>,
+    path_builder_input: <R::PathBuilder as PathBuilder>::Input<'_>,
     request: R,
     customize: F,
 ) -> impl Future<Output = ResponseResult<C, R>> + Send + 'a
 where
     C: HttpClient + ?Sized,
     R: OutgoingRequest,
+    R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
     F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
 {
     let http_req =
         info_span!("serialize_request", request_type = type_name::<R>()).in_scope(move || {
             request
-                .try_into_http_request(homeserver_url, send_access_token, for_versions)
+                .try_into_http_request(homeserver_url, send_access_token, path_builder_input)
                 .map_err(ResponseError::<C, R>::from)
                 .and_then(|mut req| {
                     customize(&mut req)?;

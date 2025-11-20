@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -8,13 +9,15 @@ use async_stream::try_stream;
 use futures_core::stream::Stream;
 use ruma::{
     api::{
+        auth_scheme::{AuthScheme, SendAccessToken},
         client::{
             account::register::{self, RegistrationKind},
             session::login::{self, v3::LoginInfo},
             sync::sync_events,
             uiaa::UserIdentifier,
         },
-        OutgoingRequest, SendAccessToken, SupportedVersions,
+        path_builder::{PathBuilder, SinglePath, VersionHistory},
+        OutgoingRequest, SupportedVersions,
     },
     presence::PresenceState,
     DeviceId, UserId,
@@ -84,7 +87,12 @@ impl<C> Client<C> {
 
 impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
-    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R> {
+    pub async fn send_request<R>(&self, request: R) -> ResponseResult<C, R>
+    where
+        R: OutgoingRequest,
+        for<'a> R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
+        R::PathBuilder: SupportedPathBuilder,
+    {
         self.send_customized_request(request, |_| Ok(())).await
     }
 
@@ -96,6 +104,8 @@ impl<C: HttpClient> Client<C> {
     ) -> ResponseResult<C, R>
     where
         R: OutgoingRequest,
+        for<'a> R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
+        R::PathBuilder: SupportedPathBuilder,
         F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
     {
         let token_mode = self.0.token_mode;
@@ -112,7 +122,7 @@ impl<C: HttpClient> Client<C> {
             &self.0.http_client,
             &self.0.homeserver_url,
             send_access_token,
-            &self.0.supported_matrix_versions,
+            R::PathBuilder::get_path_builder_input(self),
             request,
             customize,
         )
@@ -123,11 +133,12 @@ impl<C: HttpClient> Client<C> {
     ///
     /// This method is meant to be used by application services when interacting with the
     /// client-server API.
-    pub async fn send_request_as<R: OutgoingRequest>(
-        &self,
-        user_id: &UserId,
-        request: R,
-    ) -> ResponseResult<C, R> {
+    pub async fn send_request_as<R>(&self, user_id: &UserId, request: R) -> ResponseResult<C, R>
+    where
+        R: OutgoingRequest,
+        for<'a> R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
+        R::PathBuilder: SupportedPathBuilder,
+    {
         self.send_customized_request(request, add_user_id_to_query::<C, R>(user_id)).await
     }
 
@@ -253,4 +264,22 @@ impl<C: HttpClient> Client<C> {
             }
         }
     }
+}
+
+/// Marker trait to identify [`PathBuilder`] implementors that the [`Client`] supports.
+///
+/// This trait can be implemented for custom `PathBuilder`s if necessary.
+pub trait SupportedPathBuilder: PathBuilder {
+    /// Get the [`PathBuilder::Input`] from the [`Client`].
+    fn get_path_builder_input<C>(client: &Client<C>) -> Self::Input<'_>;
+}
+
+impl SupportedPathBuilder for VersionHistory {
+    fn get_path_builder_input<C>(client: &Client<C>) -> Self::Input<'_> {
+        Cow::Borrowed(&client.0.supported_matrix_versions)
+    }
+}
+
+impl SupportedPathBuilder for SinglePath {
+    fn get_path_builder_input<C>(_client: &Client<C>) -> Self::Input<'_> {}
 }
