@@ -5,7 +5,11 @@ use std::{future::Future, pin::Pin};
 
 use bytes::BufMut;
 use ruma::{
-    api::{OutgoingRequest, SendAccessToken, SupportedVersions},
+    api::{
+        auth_scheme::{AuthScheme, SendAccessToken},
+        path_builder::PathBuilder,
+        OutgoingRequest,
+    },
     UserId,
 };
 
@@ -28,7 +32,7 @@ pub use self::reqwest::Reqwest;
 /// An HTTP client that can be used to send requests to a Matrix homeserver.
 pub trait HttpClient: Sync {
     /// The type to use for `try_into_http_request`.
-    type RequestBody: Default + BufMut + Send;
+    type RequestBody: AsRef<[u8]> + Default + BufMut + Send;
 
     /// The type to use for `try_from_http_response`.
     type ResponseBody: AsRef<[u8]>;
@@ -56,17 +60,21 @@ pub trait DefaultConstructibleHttpClient: HttpClient {
 pub trait HttpClientExt: HttpClient {
     /// Send a strongly-typed matrix request to get back a strongly-typed response.
     // TODO: `R: 'a` bound should not be needed
-    fn send_matrix_request<'a, R: OutgoingRequest + 'a>(
+    fn send_matrix_request<'a, R>(
         &'a self,
         homeserver_url: &str,
-        access_token: SendAccessToken<'_>,
-        for_versions: &SupportedVersions,
+        access_token: SendAccessToken<'a>,
+        path_builder_input: <R::PathBuilder as PathBuilder>::Input<'_>,
         request: R,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>> {
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>>
+    where
+        R: OutgoingRequest,
+        R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
+    {
         self.send_customized_matrix_request(
             homeserver_url,
             access_token,
-            for_versions,
+            path_builder_input,
             request,
             |_| Ok(()),
         )
@@ -78,20 +86,21 @@ pub trait HttpClientExt: HttpClient {
     fn send_customized_matrix_request<'a, R, F>(
         &'a self,
         homeserver_url: &str,
-        access_token: SendAccessToken<'_>,
-        for_versions: &SupportedVersions,
+        access_token: SendAccessToken<'a>,
+        path_builder_input: <R::PathBuilder as PathBuilder>::Input<'_>,
         request: R,
         customize: F,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a + Send>>
     where
-        R: OutgoingRequest + 'a,
-        F: FnOnce(&mut http::Request<Self::RequestBody>) -> Result<(), ResponseError<Self, R>> + 'a,
+        R: OutgoingRequest,
+        R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
+        F: FnOnce(&mut http::Request<Self::RequestBody>) -> Result<(), ResponseError<Self, R>>,
     {
         Box::pin(crate::send_customized_request(
             self,
             homeserver_url,
             access_token,
-            for_versions,
+            path_builder_input,
             request,
             customize,
         ))
@@ -102,18 +111,22 @@ pub trait HttpClientExt: HttpClient {
     ///
     /// This method is meant to be used by application services when interacting with the
     /// client-server API.
-    fn send_matrix_request_as<'a, R: OutgoingRequest + 'a>(
+    fn send_matrix_request_as<'a, R>(
         &'a self,
         homeserver_url: &str,
-        access_token: SendAccessToken<'_>,
-        for_versions: &SupportedVersions,
+        access_token: SendAccessToken<'a>,
+        path_builder_input: <R::PathBuilder as PathBuilder>::Input<'_>,
         user_id: &'a UserId,
         request: R,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
+    where
+        R: OutgoingRequest,
+        R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
+    {
         self.send_customized_matrix_request(
             homeserver_url,
             access_token,
-            for_versions,
+            path_builder_input,
             request,
             add_user_id_to_query::<Self, R>(user_id),
         )

@@ -1,9 +1,19 @@
 # [unreleased]
 
+Breaking changes:
+
+- Upgrade ruma to 0.14.0.
+  - The `send_request`, `send_request_as` and `send_customized_request` of
+    `Client` now have stricter bounds for the request. These bounds are
+    compatible with all requests from ruma-client-api and ruma-appservice-api.
+  - `HttpRequest::RequestBuilder` has an extra `AsRef<[u8]>` bound.
+  - Bump MSRV to 1.88
+  
 Improvements:
 
--   `ClientBuilder` now has `token_mode()` which takes a `TokenMode` for correlation to `SendAccessToken` behavior.
-
+- `ClientBuilder` now has `token_mode()` which takes a `TokenMode` for
+  correlation to `SendAccessToken` behavior.
+  
 # 0.16.0
 
 Breaking changes:
