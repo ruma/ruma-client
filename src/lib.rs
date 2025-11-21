@@ -138,7 +138,7 @@ fn send_customized_request<'a, C, R, F>(
     path_builder_input: <R::PathBuilder as PathBuilder>::Input<'_>,
     request: R,
     customize: F,
-) -> impl Future<Output = ResponseResult<C, R>> + Send + 'a
+) -> impl Future<Output = ResponseResult<C, R>> + Send + 'a + use<'a, C, R, F>
 where
     C: HttpClient + ?Sized,
     R: OutgoingRequest,
