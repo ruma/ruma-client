@@ -8,7 +8,9 @@ use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
 use ruma::{
+    DeviceId, UserId,
     api::{
+        OutgoingRequest, SupportedVersions,
         auth_scheme::{AuthScheme, SendAccessToken},
         client::{
             account::register::{self, RegistrationKind},
@@ -17,14 +19,12 @@ use ruma::{
             uiaa::UserIdentifier,
         },
         path_builder::{PathBuilder, SinglePath, VersionHistory},
-        OutgoingRequest, SupportedVersions,
     },
     presence::PresenceState,
-    DeviceId, UserId,
 };
 
 use crate::{
-    add_user_id_to_query, send_customized_request, Error, HttpClient, ResponseError, ResponseResult,
+    Error, HttpClient, ResponseError, ResponseResult, add_user_id_to_query, send_customized_request,
 };
 
 mod builder;

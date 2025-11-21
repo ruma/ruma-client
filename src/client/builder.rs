@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use ruma::api::{
-    auth_scheme::SendAccessToken, client::discovery::get_supported_versions, SupportedVersions,
+    SupportedVersions, auth_scheme::SendAccessToken, client::discovery::get_supported_versions,
 };
 
 use super::{Client, ClientData, TokenMode};

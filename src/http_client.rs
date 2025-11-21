@@ -5,15 +5,15 @@ use std::{future::Future, pin::Pin};
 
 use bytes::BufMut;
 use ruma::{
+    UserId,
     api::{
+        OutgoingRequest,
         auth_scheme::{AuthScheme, SendAccessToken},
         path_builder::PathBuilder,
-        OutgoingRequest,
     },
-    UserId,
 };
 
-use crate::{add_user_id_to_query, ResponseError, ResponseResult};
+use crate::{ResponseError, ResponseResult, add_user_id_to_query};
 
 #[cfg(feature = "hyper")]
 mod hyper;
