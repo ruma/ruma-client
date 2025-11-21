@@ -64,7 +64,7 @@
 //! #     .await?;
 //!
 //! use ruma::{
-//!     api::{client::alias::get_alias, MatrixVersion},
+//!     api::{MatrixVersion, client::alias::get_alias},
 //!     owned_room_alias_id, room_id,
 //! };
 //!
@@ -102,14 +102,14 @@ use std::{any::type_name, future::Future};
 #[doc(no_inline)]
 pub use ruma;
 use ruma::{
+    UserId,
     api::{
+        OutgoingRequest,
         auth_scheme::{AuthScheme, SendAccessToken},
         path_builder::PathBuilder,
-        OutgoingRequest,
     },
-    UserId,
 };
-use tracing::{info_span, Instrument};
+use tracing::{Instrument, info_span};
 
 #[cfg(feature = "client-api")]
 mod client;

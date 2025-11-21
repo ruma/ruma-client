@@ -40,7 +40,10 @@ impl<E: Display, F: Display> Display for Error<E, F> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthenticationRequired => {
-                write!(f, "The queried endpoint requires authentication but was called with an anonymous client.")
+                write!(
+                    f,
+                    "The queried endpoint requires authentication but was called with an anonymous client."
+                )
             }
             Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {err}"),
             Self::Url(err) => write!(f, "Invalid URL: {err}"),
