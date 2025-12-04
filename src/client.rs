@@ -141,8 +141,10 @@ impl<C: HttpClient> Client<C> {
         for<'a> R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
         R::PathBuilder: SupportedPathBuilder,
     {
-        self.send_customized_request(request, |uri| Ok(identity.maybe_add_to_uri(uri.uri_mut())?))
-            .await
+        self.send_customized_request(request, |request| {
+            Ok(identity.maybe_add_to_uri(request.uri_mut())?)
+        })
+        .await
     }
 
     /// Log in with a username and password.

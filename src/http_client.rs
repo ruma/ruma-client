@@ -56,6 +56,7 @@ pub trait DefaultConstructibleHttpClient: HttpClient {
 /// trait should make that relatively easy.
 pub trait HttpClientExt: HttpClient {
     /// Send a strongly-typed matrix request to get back a strongly-typed response.
+    // TODO: `R: 'a` bound should not be needed
     fn send_matrix_request<'a, R>(
         &'a self,
         homeserver_url: &str,
@@ -78,6 +79,7 @@ pub trait HttpClientExt: HttpClient {
 
     /// Turn a strongly-typed matrix request into an `http::Request`, customize it and send it to
     /// get back a strongly-typed response.
+    // TODO: `R: 'a` and `F: 'a` should not be needed
     fn send_customized_matrix_request<'a, R, F>(
         &'a self,
         homeserver_url: &str,
@@ -123,7 +125,7 @@ pub trait HttpClientExt: HttpClient {
             access_token,
             path_builder_input,
             request,
-            |uri| Ok(identity.maybe_add_to_uri(uri.uri_mut())?),
+            |request| Ok(identity.maybe_add_to_uri(request.uri_mut())?),
         )
     }
 }
