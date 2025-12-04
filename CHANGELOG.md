@@ -8,6 +8,7 @@ Breaking changes:
     compatible with all requests from ruma-client-api and ruma-appservice-api.
   - `HttpRequest::RequestBuilder` has an extra `AsRef<[u8]>` bound.
   - Bump MSRV to 1.88
+- `Client::send_request_as()` now takes `AppserviceUserIdentity` instead of `&UserId`.
   
 Improvements:
 
