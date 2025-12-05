@@ -101,13 +101,10 @@ use std::{any::type_name, future::Future};
 
 #[doc(no_inline)]
 pub use ruma;
-use ruma::{
-    UserId,
-    api::{
-        OutgoingRequest,
-        auth_scheme::{AuthScheme, SendAccessToken},
-        path_builder::PathBuilder,
-    },
+use ruma::api::{
+    OutgoingRequest,
+    auth_scheme::{AuthScheme, SendAccessToken},
+    path_builder::PathBuilder,
 };
 use tracing::{Instrument, info_span};
 
@@ -175,26 +172,5 @@ where
                 .in_scope(move || ruma::api::IncomingResponse::try_from_http_response(http_res))?;
 
         Ok(res)
-    }
-}
-
-fn add_user_id_to_query<C: HttpClient + ?Sized, R: OutgoingRequest>(
-    user_id: &UserId,
-) -> impl FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>> + '_ {
-    use assign::assign;
-    use http::uri::Uri;
-
-    move |http_request| {
-        let extra_params = serde_html_form::to_string([("user_id", user_id)]).unwrap();
-        let uri = http_request.uri_mut();
-        let new_path_and_query = match uri.query() {
-            Some(params) => format!("{}?{params}&{extra_params}", uri.path()),
-            None => format!("{}?{extra_params}", uri.path()),
-        };
-        *uri = Uri::from_parts(assign!(uri.clone().into_parts(), {
-            path_and_query: Some(new_path_and_query.parse()?),
-        }))?;
-
-        Ok(())
     }
 }

@@ -8,9 +8,9 @@ use assign::assign;
 use async_stream::try_stream;
 use futures_core::stream::Stream;
 use ruma::{
-    DeviceId, UserId,
+    DeviceId,
     api::{
-        OutgoingRequest, SupportedVersions,
+        AppserviceUserIdentity, OutgoingRequest, SupportedVersions,
         auth_scheme::{AuthScheme, SendAccessToken},
         client::{
             account::register::{self, RegistrationKind},
@@ -23,9 +23,7 @@ use ruma::{
     presence::PresenceState,
 };
 
-use crate::{
-    Error, HttpClient, ResponseError, ResponseResult, add_user_id_to_query, send_customized_request,
-};
+use crate::{Error, HttpClient, ResponseError, ResponseResult, send_customized_request};
 
 mod builder;
 
@@ -133,13 +131,20 @@ impl<C: HttpClient> Client<C> {
     ///
     /// This method is meant to be used by application services when interacting with the
     /// client-server API.
-    pub async fn send_request_as<R>(&self, user_id: &UserId, request: R) -> ResponseResult<C, R>
+    pub async fn send_request_as<R>(
+        &self,
+        identity: AppserviceUserIdentity<'_>,
+        request: R,
+    ) -> ResponseResult<C, R>
     where
         R: OutgoingRequest,
         for<'a> R::Authentication: AuthScheme<Input<'a> = SendAccessToken<'a>>,
         R::PathBuilder: SupportedPathBuilder,
     {
-        self.send_customized_request(request, add_user_id_to_query::<C, R>(user_id)).await
+        self.send_customized_request(request, |request| {
+            Ok(identity.maybe_add_to_uri(request.uri_mut())?)
+        })
+        .await
     }
 
     /// Log in with a username and password.

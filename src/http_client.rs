@@ -4,16 +4,13 @@
 use std::{future::Future, pin::Pin};
 
 use bytes::BufMut;
-use ruma::{
-    UserId,
-    api::{
-        OutgoingRequest,
-        auth_scheme::{AuthScheme, SendAccessToken},
-        path_builder::PathBuilder,
-    },
+use ruma::api::{
+    AppserviceUserIdentity, OutgoingRequest,
+    auth_scheme::{AuthScheme, SendAccessToken},
+    path_builder::PathBuilder,
 };
 
-use crate::{ResponseError, ResponseResult, add_user_id_to_query};
+use crate::{ResponseError, ResponseResult};
 
 #[cfg(feature = "hyper")]
 mod hyper;
@@ -106,8 +103,8 @@ pub trait HttpClientExt: HttpClient {
         ))
     }
 
-    /// Turn a strongly-typed matrix request into an `http::Request`, add a `user_id` query
-    /// parameter to it and send it to get back a strongly-typed response.
+    /// Turn a strongly-typed matrix request into an `http::Request`, add `user_id` and/or
+    /// `device_id` query parameters to it and send it to get back a strongly-typed response.
     ///
     /// This method is meant to be used by application services when interacting with the
     /// client-server API.
@@ -116,7 +113,7 @@ pub trait HttpClientExt: HttpClient {
         homeserver_url: &str,
         access_token: SendAccessToken<'a>,
         path_builder_input: <R::PathBuilder as PathBuilder>::Input<'_>,
-        user_id: &'a UserId,
+        identity: AppserviceUserIdentity<'a>,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
     where
@@ -128,7 +125,7 @@ pub trait HttpClientExt: HttpClient {
             access_token,
             path_builder_input,
             request,
-            add_user_id_to_query::<Self, R>(user_id),
+            |request| Ok(identity.maybe_add_to_uri(request.uri_mut())?),
         )
     }
 }
