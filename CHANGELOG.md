@@ -2,7 +2,7 @@
 
 Breaking changes:
 
-- Upgrade ruma to 0.14.0.
+- Upgrade ruma to 0.14.1.
   - The `send_request`, `send_request_as` and `send_customized_request` of
     `Client` now have stricter bounds for the request. These bounds are
     compatible with all requests from ruma-client-api and ruma-appservice-api.
