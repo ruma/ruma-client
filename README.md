@@ -21,4 +21,4 @@ Rust SDK], which also builds on the other Ruma crates but provides a higher-leve
 ## Examples
 
 You can find a small number of examples in our dedicated
-[examples repository](https://github.com/ruma/examples).
+[ruma-examples repository](https://github.com/ruma/ruma-examples).
