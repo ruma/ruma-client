@@ -95,7 +95,7 @@
 //!   * `reqwest-rustls-native-roots`
 
 #![warn(missing_docs)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 use std::{any::type_name, future::Future};
 
