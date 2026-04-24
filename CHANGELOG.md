@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+- Upgrade reqwest to 0.13.
+  - The `reqwest-*` cargo features were updated to match the changes upstream.
+
 # 0.17.0
 
 Breaking changes:
