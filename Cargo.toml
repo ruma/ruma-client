@@ -14,6 +14,12 @@ rust-version = "1.88"
 [package.metadata.docs.rs]
 all-features = true
 
+[package.metadata.cargo-machete]
+ignored = [
+    # Used to enable features that are not reexported by hyper-tls.
+    "hyper",
+]
+
 [features]
 client-api = ["dep:as_variant", "ruma/client-api-c"]
 
