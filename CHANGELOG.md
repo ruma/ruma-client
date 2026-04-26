@@ -6,6 +6,8 @@ Breaking changes:
 
 - Upgrade reqwest to 0.13.
   - The `reqwest-*` cargo features were updated to match the changes upstream.
+- Upgrade ruma to 0.15.0.
+  - Bump the MSRV to 1.89.
 
 ## 0.17.0
 

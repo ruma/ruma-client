@@ -60,7 +60,7 @@ impl ClientBuilder {
     /// Unless the supported Matrix versions were manually set via
     /// [`supported_matrix_versions`][Self::supported_matrix_versions], this will do a
     /// [`get_supported_versions`] request to find out about the supported versions.
-    pub async fn build<C>(self) -> Result<Client<C>, Error<C::Error, ruma::api::client::Error>>
+    pub async fn build<C>(self) -> Result<Client<C>, Error<C::Error, ruma::api::error::Error>>
     where
         C: DefaultConstructibleHttpClient,
     {
@@ -75,7 +75,7 @@ impl ClientBuilder {
     pub async fn http_client<C>(
         self,
         http_client: C,
-    ) -> Result<Client<C>, Error<C::Error, ruma::api::client::Error>>
+    ) -> Result<Client<C>, Error<C::Error, ruma::api::error::Error>>
     where
         C: HttpClient,
     {
