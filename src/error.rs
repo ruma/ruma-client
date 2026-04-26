@@ -2,7 +2,8 @@
 
 use std::fmt::{self, Debug, Display, Formatter};
 
-use ruma::api::error::{FromHttpResponseError, IntoHttpError};
+use as_variant::as_variant;
+use ruma::api::error::{FromHttpResponseError, FromHttpResponseErrorExt as _, IntoHttpError};
 
 /// An error that can occur during client operations.
 #[derive(Debug)]
@@ -24,14 +25,10 @@ pub enum Error<E, F> {
     FromHttpResponse(FromHttpResponseError<F>),
 }
 
-#[cfg(feature = "client-api")]
-impl<E> Error<E, ruma::api::client::Error> {
+impl<E> Error<E, ruma::api::error::Error> {
     /// If `self` is a server error in the `errcode` + `error` format expected
-    /// for client-server API endpoints, returns the error kind (`errcode`).
-    pub fn error_kind(&self) -> Option<&ruma::api::client::error::ErrorKind> {
-        use as_variant::as_variant;
-        use ruma::api::client::error::FromHttpResponseErrorExt as _;
-
+    /// for Matrix API endpoints, returns the error kind (`errcode`).
+    pub fn error_kind(&self) -> Option<&ruma::api::error::ErrorKind> {
         as_variant!(self, Self::FromHttpResponse)?.error_kind()
     }
 }

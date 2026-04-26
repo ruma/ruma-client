@@ -16,7 +16,7 @@ use ruma::{
             account::register::{self, RegistrationKind},
             session::login::{self, v3::LoginInfo},
             sync::sync_events,
-            uiaa::UserIdentifier,
+            uiaa::{MatrixUserIdentifier, UserIdentifier},
         },
         path_builder::{PathBuilder, SinglePath, VersionHistory},
     },
@@ -157,9 +157,9 @@ impl<C: HttpClient> Client<C> {
         password: &str,
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
-    ) -> Result<login::v3::Response, Error<C::Error, ruma::api::client::Error>> {
+    ) -> Result<login::v3::Response, Error<C::Error, ruma::api::error::Error>> {
         let login_info = LoginInfo::Password(login::v3::Password::new(
-            UserIdentifier::UserIdOrLocalpart(user.to_owned()),
+            UserIdentifier::Matrix(MatrixUserIdentifier::new(user.to_owned())),
             password.to_owned(),
         ));
         let response = self
@@ -251,7 +251,7 @@ impl<C: HttpClient> Client<C> {
         set_presence: PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<
-        Item = Result<sync_events::v3::Response, Error<C::Error, ruma::api::client::Error>>,
+        Item = Result<sync_events::v3::Response, Error<C::Error, ruma::api::error::Error>>,
     > + '_ {
         try_stream! {
             loop {
