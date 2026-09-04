@@ -102,7 +102,7 @@ use std::{any::type_name, future::Future};
 #[doc(no_inline)]
 pub use ruma;
 use ruma::api::{
-    OutgoingRequest,
+    OutgoingRequest, OutgoingRequestExt as _,
     auth_scheme::{AuthScheme, SendAccessToken},
     path_builder::PathBuilder,
 };
@@ -169,7 +169,12 @@ where
 
         let res =
             info_span!("deserialize_response", response_type = type_name::<R::IncomingResponse>())
-                .in_scope(move || ruma::api::IncomingResponse::try_from_http_response(http_res))?;
+                .in_scope(move || {
+                    let (parts, body) = http_res.into_parts();
+                    ruma::api::IncomingResponseExt::try_from_http_response(
+                        http::Response::from_parts(parts, body.as_ref()),
+                    )
+                })?;
 
         Ok(res)
     }
