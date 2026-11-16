@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Upgrade ruma to 0.18.0.
+
 ## 0.20.0
 
 Breaking changes:
